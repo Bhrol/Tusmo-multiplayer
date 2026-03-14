@@ -8,6 +8,8 @@ const KEYBOARD_LAYOUT = [
 ];
 
 let keyHandler = null;
+let prevRowLetters = [];
+let prevRowIndex = -1;
 
 /**
  * Inject keyboard handler to avoid circular imports.
@@ -109,6 +111,11 @@ export function buildGrid() {
   if (!appState.state?.room || !appState.state?.you) return;
   const length = appState.state.room.currentLength;
   const fixedLetters = getFixedLetters();
+  const activeRow = appState.state.you.attempts.length;
+  if (activeRow !== prevRowIndex || prevRowLetters.length !== length) {
+    prevRowIndex = activeRow;
+    prevRowLetters = Array(length).fill(null);
+  }
   dom.grid.style.gridTemplateRows = `repeat(${appState.state.room.maxAttempts}, 1fr)`;
   dom.grid.innerHTML = "";
   for (let row = 0; row < appState.state.room.maxAttempts; row += 1) {
@@ -128,12 +135,21 @@ export function buildGrid() {
         if (status === 2) cell.classList.add("correct");
         if (status === 1) cell.classList.add("present");
         if (status === 0) cell.classList.add("absent");
-      } else if (row === appState.state.you.attempts.length) {
+      } else if (row === activeRow) {
         const letter =
           appState.currentGuess[col] ||
           (appState.overrideMask[col] ? "" : fixedLetters[col]) ||
           "";
-        cell.textContent = letter;
+        cell.textContent = letter || "·";
+        if (letter) {
+          cell.classList.add("current-fill");
+        } else {
+          cell.classList.add("current-dot");
+        }
+        if (prevRowLetters[col] !== null && prevRowLetters[col] !== letter) {
+          cell.classList.add("cell-bounce");
+        }
+        prevRowLetters[col] = letter;
       }
       rowEl.appendChild(cell);
     }

@@ -175,6 +175,31 @@ body {
   background: #0a4454;
 }
 
+.tile-cell.current-fill {
+  background: rgba(143, 216, 255, 0.25);
+  border-color: rgba(143, 216, 255, 0.6);
+}
+
+.tile-cell.current-dot {
+  color: rgba(143, 216, 255, 0.55);
+}
+
+.tile-cell.cell-bounce {
+  animation: cellBounce 0.22s ease-out;
+}
+
+@keyframes cellBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .message {
   min-height: 24px;
   font-weight: 600;

@@ -3,7 +3,7 @@ import { appState } from "./state.js";
 import { socket } from "./socket.js";
 import { initGuess, handleKeyInput, setupKeyboardEvents } from "./input.js";
 import { initRouter, goTo, renderRoute } from "./router.js";
-import { setKeyHandler, showMessage, updateLengthMode, updateUI } from "./ui.js";
+import { setKeyHandler, showMessage, updateLengthMode, updateUI, buildGrid } from "./ui.js";
 
 /**
  * Wire the input handler for the on-screen keyboard.
@@ -104,6 +104,20 @@ socket.on("room_state", (payload) => {
 
 socket.on("error_msg", (payload) => {
   showMessage(payload.text);
+});
+
+socket.on("invalid_guess", (payload) => {
+  // showMessage(payload.text);
+  showMessage(appState.currentGuess + ", " + payload.text);
+  appState.currentGuess = appState.currentGuess.slice(0, 1).concat(appState.currentGuess.slice(1).map(() => ""));
+  appState.overrideMask = appState.overrideMask.slice(0, 1).concat(appState.overrideMask.slice(1).map(() => true));
+  appState.lastLetterIndex = 0;
+  buildGrid();
+});
+
+socket.on("word_result", (payload) => {
+  appState.lastLetterIndex = 0;
+  buildGrid();
 });
 
 socket.on("room_message", (payload) => {

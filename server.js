@@ -239,18 +239,19 @@ io.on("connection", (socket) => {
 
     const guess = normalizeGuess(payload?.guess);
     if (guess.length !== room.currentLength) {
-      socket.emit("error_msg", { text: `Word must be ${room.currentLength} letters.` });
+      socket.emit("error_msg", { text: `Word must be ${room.currentLength} letters.`} );
       return;
     }
 
     if (!isValidWord(guess, room.settings.language, room.currentLength)) {
-      socket.emit("error_msg", { text: "Word not in dictionary." });
+      socket.emit("invalid_guess", { text: "Ce mot n'est pas dans la liste !"});
       return;
     }
 
     const result = computeResult(guess, room.targetWord);
     player.attempts.push({ guess, result });
     player.currentGuess = "";
+    socket.emit("word_result", { guess, result });
 
     if (guess === room.targetWord) {
       player.score += 1;
@@ -261,6 +262,7 @@ io.on("connection", (socket) => {
 
     emitRoomState(room);
     checkAdvance(room);
+    
   });
 
   socket.on("disconnect", () => {

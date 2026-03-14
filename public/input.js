@@ -13,33 +13,6 @@ export function initGuess() {
 }
 
 /**
- * Find the next empty slot for typing.
- * @returns {number}
- */
-function findNextIndex() {
-  for (let i = 0; i < appState.currentGuess.length; i += 1) {
-    if (!appState.currentGuess[i]) return i;
-  }
-  return -1;
-}
-
-/**
- * Find the previous filled slot for backspace (skip fixed first letter).
- * @returns {number}
- */
-function findPrevIndex() {
-  for (let i = appState.currentGuess.length - 1; i >= 0; i -= 1) {
-    if (i === 0 && appState.state?.room?.firstLetter) {
-      continue;
-    }
-    if (appState.currentGuess[i]) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-/**
  * Handle both on-screen and physical keyboard input.
  * @param {string} key
  */
@@ -63,8 +36,9 @@ export function handleKeyInput(key) {
   }
 
   if (key === "BACK") {
-    const idx = findNextIndex() - 1; // Backspace should remove the last filled character
+    const idx = appState.lastLetterIndex ? appState.lastLetterIndex : 1;
     if (idx >= 0) {
+      appState.lastLetterIndex = idx-1;
       appState.currentGuess[idx] = "";
       appState.overrideMask[idx] = true;
     }
@@ -73,8 +47,9 @@ export function handleKeyInput(key) {
   }
 
   if (/^[A-Z]$/.test(key)) {
-    const idx = findNextIndex();
+    const idx = (appState.lastLetterIndex ? appState.lastLetterIndex : 0) +1;
     if (idx >= 0 && idx < length) {
+      appState.lastLetterIndex = idx;
       appState.currentGuess[idx] = key;
       appState.overrideMask[idx] = true;
     }

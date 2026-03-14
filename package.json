@@ -5,12 +5,20 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "concurrently \"nodemon server.js\" \"browser-sync start --proxy http://localhost:3000 --files \\\"public/**/*.*\\\"\"",
+    "dev:server": "nodemon server.js",
+    "dev:client": "browser-sync start --proxy http://localhost:3000 --files \"public/**/*.*\""
   },
   "dependencies": {
     "an-array-of-english-words": "^2.0.0",
     "an-array-of-french-words": "^2.0.0",
     "express": "^4.19.2",
     "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "browser-sync": "^3.0.2",
+    "concurrently": "^9.2.0",
+    "nodemon": "^3.1.3"
   }
 }

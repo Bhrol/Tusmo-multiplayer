@@ -6,5 +6,6 @@ export const appState = {
   lastWordIndex: null,
   lastLength: null,
   lastAttemptCount: null,
-  lastAutoJoinCode: null
+  lastAutoJoinCode: null,
+  lastLetterIndex: null
 };
