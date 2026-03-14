@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tusmo Multiplayer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Rubik:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <button class="home-btn" id="homeBtn" title="Home">⌂</button>
+        <div class="title">
+          <span class="tile t">T</span>
+          <span class="tile u">U</span>
+          <span class="tile s">S</span>
+          <span class="tile m">M</span>
+          <span class="tile o">O</span>
+        </div>
+        <div class="room-pill" id="roomPill">Room ----</div>
+      </header>
+
+      <section class="status">
+        <div class="stat" id="wordStat">Mot 1</div>
+        <div class="stat" id="scoreStat">Score 0</div>
+        <div class="name-edit">
+          <input type="text" id="nameEdit" placeholder="Username" maxlength="20" />
+          <button id="nameSave" class="secondary small">Update</button>
+        </div>
+        <button id="startBtn" class="primary small">Start Game</button>
+      </section>
+
+      <main class="main">
+        <section class="board">
+          <div id="grid" class="grid"></div>
+          <div class="message" id="message"></div>
+        </section>
+
+        <aside class="players">
+          <div class="players-header">Other Players</div>
+          <div id="playersList" class="players-list"></div>
+        </aside>
+      </main>
+
+      <section class="keyboard" id="keyboard"></section>
+    </div>
+
+    <div class="overlay welcome-overlay" id="welcome">
+      <div class="welcome-screen">
+        <div class="welcome-logo">
+          <span class="logo-tile t">T</span>
+          <span class="logo-tile u">U</span>
+          <span class="logo-tile s">S</span>
+          <span class="logo-tile m">M</span>
+          <span class="logo-tile o">O</span>
+        </div>
+
+        <button id="modeMultiplayer" class="welcome-option multiplayer-option" type="button">
+          <span class="option-box"></span>
+          <span class="option-text">MULTIPLAYER</span>
+        </button>
+
+      </div>
+    </div>
+
+    <div class="overlay no-dim hidden" id="lobby">
+      <div class="lobby-card">
+        <div class="lobby-top">
+          <h1>Multiplayer</h1>
+          <button id="backToWelcome" class="secondary small">Back</button>
+        </div>
+        <div class="lobby-actions">
+          <button id="showCreate" class="welcome-option multiplayer-option" type="button">
+            <span class="option-box"></span>
+            <span class="option-text">CREATE ROOM</span>
+          </button>
+          <button id="showJoin" class="welcome-option multiplayer-option" type="button">
+            <span class="option-box"></span>
+            <span class="option-text">JOIN ROOM</span>
+          </button>
+        </div>
+
+        <div id="createPanel" class="lobby-panel hidden">
+          <label>
+            Language
+            <select id="languageInput">
+              <option value="fr">French</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <label>
+            Number of words
+            <input type="number" id="wordCountInput" min="1" max="20" value="3" />
+          </label>
+          <label>
+            Length mode
+            <select id="lengthModeInput">
+              <option value="fixed">Fixed</option>
+              <option value="range">Increasing range</option>
+            </select>
+          </label>
+          <label id="fixedLengthWrap">
+            Word length
+            <input type="number" id="fixedLengthInput" min="4" max="10" value="6" />
+          </label>
+          <div id="rangeWrap" class="range-wrap">
+            <label>
+              Min length
+              <input type="number" id="minLengthInput" min="4" max="10" value="4" />
+            </label>
+            <label>
+              Max length
+              <input type="number" id="maxLengthInput" min="4" max="10" value="8" />
+            </label>
+          </div>
+          <button id="createBtn" class="primary">Create</button>
+        </div>
+
+        <div id="joinPanel" class="lobby-panel hidden">
+          <label>
+            Room code
+            <input type="text" id="codeInput" placeholder="ABCD" maxlength="4" />
+          </label>
+          <button id="joinBtn" class="secondary">Join</button>
+        </div>
+
+        <div id="waitingPanel" class="lobby-panel hidden">
+          <div class="waiting-title">Waiting Room</div>
+          <div id="waitingSettings" class="waiting-settings"></div>
+          <div class="waiting-name">
+            <input type="text" id="waitingNameInput" placeholder="Your name" maxlength="20" />
+            <button id="waitingNameSave" class="secondary small">Update</button>
+          </div>
+          <button id="waitingStartBtn" class="primary">Start Game</button>
+          <div class="waiting-players">
+            <div class="players-header">Players</div>
+            <div id="waitingPlayers" class="waiting-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
