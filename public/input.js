@@ -2,6 +2,9 @@ import { appState } from "./state.js";
 import { buildGrid, getFixedLetters, showMessage } from "./ui.js";
 import { socket } from "./socket.js";
 
+/**
+ * Initialize the guess buffer with fixed letters.
+ */
 export function initGuess() {
   const length = appState.state?.room?.currentLength || 0;
   const fixed = getFixedLetters();
@@ -9,6 +12,10 @@ export function initGuess() {
   appState.overrideMask = Array.from({ length }, () => false);
 }
 
+/**
+ * Find the next empty slot for typing.
+ * @returns {number}
+ */
 function findNextIndex() {
   for (let i = 0; i < appState.currentGuess.length; i += 1) {
     if (!appState.currentGuess[i]) return i;
@@ -16,6 +23,10 @@ function findNextIndex() {
   return -1;
 }
 
+/**
+ * Find the previous filled slot for backspace (skip fixed first letter).
+ * @returns {number}
+ */
 function findPrevIndex() {
   for (let i = appState.currentGuess.length - 1; i >= 0; i -= 1) {
     if (i === 0 && appState.state?.room?.firstLetter) {
@@ -28,6 +39,10 @@ function findPrevIndex() {
   return -1;
 }
 
+/**
+ * Handle both on-screen and physical keyboard input.
+ * @param {string} key
+ */
 export function handleKeyInput(key) {
   if (!appState.state?.room || !appState.state?.you) return;
   if (!appState.state.room.started || appState.state.room.gameOver) return;
@@ -48,7 +63,7 @@ export function handleKeyInput(key) {
   }
 
   if (key === "BACK") {
-    const idx = findPrevIndex();
+    const idx = findNextIndex() - 1; // Backspace should remove the last filled character
     if (idx >= 0) {
       appState.currentGuess[idx] = "";
       appState.overrideMask[idx] = true;
@@ -67,6 +82,9 @@ export function handleKeyInput(key) {
   }
 }
 
+/**
+ * Bind physical keyboard events once.
+ */
 export function setupKeyboardEvents() {
   document.addEventListener("keydown", (event) => {
     if (!appState.state?.room) return;

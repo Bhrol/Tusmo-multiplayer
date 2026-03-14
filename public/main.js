@@ -5,6 +5,9 @@ import { initGuess, handleKeyInput, setupKeyboardEvents } from "./input.js";
 import { initRouter, goTo, renderRoute } from "./router.js";
 import { setKeyHandler, showMessage, updateLengthMode, updateUI } from "./ui.js";
 
+/**
+ * Wire the input handler for the on-screen keyboard.
+ */
 setKeyHandler(handleKeyInput);
 
 dom.lengthModeInput.addEventListener("change", updateLengthMode);
@@ -77,6 +80,10 @@ dom.showJoin.addEventListener("click", () => {
   goTo("/join");
 });
 
+/**
+ * Sync client state from the server.
+ * @param {object} payload
+ */
 socket.on("room_state", (payload) => {
   appState.state = payload;
   appState.roomCode = payload.room.code;

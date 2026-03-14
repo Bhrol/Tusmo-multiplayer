@@ -19,6 +19,12 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 const MAX_ATTEMPTS = 6;
 
+/**
+ * Compute Wordle-style result codes: 2=correct, 1=present, 0=absent.
+ * @param {string} guess
+ * @param {string} target
+ * @returns {number[]}
+ */
 function computeResult(guess, target) {
   const result = Array(guess.length).fill(0);
   const targetChars = target.split("");
@@ -43,12 +49,20 @@ function computeResult(guess, target) {
   return result;
 }
 
+/**
+ * Send a tailored room state to each connected player.
+ * @param {object} room
+ */
 function emitRoomState(room) {
   room.players.forEach((player) => {
     io.to(player.id).emit("room_state", buildRoomState(room, player.id, MAX_ATTEMPTS));
   });
 }
 
+/**
+ * Advance to the next word once every player is done.
+ * @param {object} room
+ */
 function checkAdvance(room) {
   if (room.gameOver || !room.started) return;
   const allDone = Array.from(room.players.values()).every((p) => p.status === "done");
@@ -84,6 +98,9 @@ app.get(
 );
 
 io.on("connection", (socket) => {
+  /**
+   * Remove a socket from its current room and clean up.
+   */
   function removeFromRooms() {
     for (const room of rooms.values()) {
       if (room.players.has(socket.id)) {

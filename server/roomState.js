@@ -1,3 +1,10 @@
+/**
+ * Build the public color grid for a player (no letters).
+ * @param {object} player
+ * @param {number} length
+ * @param {number} maxAttempts
+ * @returns {number[][]}
+ */
 function buildGridForPlayer(player, length, maxAttempts) {
   const grid = [];
   for (let i = 0; i < maxAttempts; i += 1) {
@@ -10,6 +17,13 @@ function buildGridForPlayer(player, length, maxAttempts) {
   return grid;
 }
 
+/**
+ * Shape the payload sent to each client (private + public data).
+ * @param {object} room
+ * @param {string} socketId
+ * @param {number} maxAttempts
+ * @returns {object}
+ */
 export function buildRoomState(room, socketId, maxAttempts) {
   const players = Array.from(room.players.values()).map((p) => ({
     id: p.id,

@@ -9,10 +9,17 @@ const KEYBOARD_LAYOUT = [
 
 let keyHandler = null;
 
+/**
+ * Inject keyboard handler to avoid circular imports.
+ * @param {(key: string) => void} handler
+ */
 export function setKeyHandler(handler) {
   keyHandler = handler;
 }
 
+/**
+ * Apply bounce animation to visible buttons when routes change.
+ */
 export function bounceVisibleButtons() {
   const buttons = Array.from(document.querySelectorAll("button")).filter(
     (btn) => btn.offsetParent !== null
@@ -24,10 +31,17 @@ export function bounceVisibleButtons() {
   });
 }
 
+/**
+ * Update the status message area.
+ * @param {string} text
+ */
 export function showMessage(text) {
   dom.message.textContent = text || "";
 }
 
+/**
+ * Toggle fixed vs range length inputs.
+ */
 export function updateLengthMode() {
   const mode = dom.lengthModeInput.value;
   if (mode === "fixed") {
@@ -39,6 +53,10 @@ export function updateLengthMode() {
   }
 }
 
+/**
+ * Render the on-screen keyboard with status coloring.
+ * @param {Record<string, number>} keyState
+ */
 export function buildKeyboard(keyState) {
   dom.keyboard.innerHTML = "";
   KEYBOARD_LAYOUT.forEach((row) => {
@@ -62,6 +80,10 @@ export function buildKeyboard(keyState) {
   });
 }
 
+/**
+ * Collect letters that must stay visible across attempts.
+ * @returns {string[]}
+ */
 export function getFixedLetters() {
   const length = appState.state?.room?.currentLength || 0;
   const fixed = Array(length).fill("");
@@ -80,6 +102,9 @@ export function getFixedLetters() {
   return fixed;
 }
 
+/**
+ * Render the main guess grid.
+ */
 export function buildGrid() {
   if (!appState.state?.room || !appState.state?.you) return;
   const length = appState.state.room.currentLength;
@@ -116,6 +141,10 @@ export function buildGrid() {
   }
 }
 
+/**
+ * Aggregate letter statuses for keyboard coloring.
+ * @returns {Record<string, number>}
+ */
 export function buildKeyState() {
   const keyState = {};
   if (!appState.state?.you) return keyState;
@@ -131,6 +160,9 @@ export function buildKeyState() {
   return keyState;
 }
 
+/**
+ * Render other players' masked grids.
+ */
 export function buildPlayers() {
   dom.playersList.innerHTML = "";
   if (!appState.state?.othersGrids) return;
@@ -168,6 +200,9 @@ export function buildPlayers() {
   });
 }
 
+/**
+ * Update header stats (word, score, room).
+ */
 export function updateStats() {
   if (!appState.state?.room || !appState.state?.you) return;
   if (!appState.state.room.started) {
@@ -179,6 +214,9 @@ export function updateStats() {
   dom.roomPill.textContent = `Room ${appState.state.room.code}`;
 }
 
+/**
+ * Render waiting room settings and player list.
+ */
 export function renderWaitingRoom() {
   if (!appState.state?.room) return;
   const modeLabel =
@@ -209,6 +247,9 @@ export function renderWaitingRoom() {
   dom.waitingStartBtn.classList.toggle("hidden", !isHost);
 }
 
+/**
+ * Main UI refresh after a state change.
+ */
 export function updateUI() {
   if (!appState.state) return;
   buildGrid();

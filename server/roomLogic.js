@@ -1,3 +1,8 @@
+/**
+ * Resolve the next word length based on room settings.
+ * @param {object} room
+ * @returns {number}
+ */
 export function nextLength(room) {
   if (room.settings.lengthMode === "fixed") {
     return room.settings.fixedLength;
@@ -6,6 +11,11 @@ export function nextLength(room) {
   return next > room.settings.maxLength ? room.settings.minLength : next;
 }
 
+/**
+ * Advance to the next word and reset player attempts.
+ * @param {object} room
+ * @param {(length: number, language: string) => string|null} pickWord
+ */
 export function startNewWord(room, pickWord) {
   room.wordIndex += 1;
   if (room.wordIndex >= room.settings.wordCount) {

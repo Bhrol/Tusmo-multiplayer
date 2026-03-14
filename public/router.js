@@ -3,11 +3,20 @@ import { appState } from "./state.js";
 import { bounceVisibleButtons } from "./ui.js";
 import { socket } from "./socket.js";
 
+/**
+ * Normalize route paths (trim trailing slashes).
+ * @param {string} pathname
+ * @returns {string}
+ */
 function normalizePath(pathname) {
   if (!pathname || pathname === "/") return "/";
   return pathname.replace(/\/+$/, "");
 }
 
+/**
+ * Route-aware UI switching for welcome/lobby/game.
+ * @param {string} pathname
+ */
 export function renderRoute(pathname) {
   const path = normalizePath(pathname || "/");
   const joinMatch = path.match(/^\/join\/([A-Z0-9]{4})$/i);
@@ -98,11 +107,18 @@ export function renderRoute(pathname) {
   bounceVisibleButtons();
 }
 
+/**
+ * Client-side navigation helper.
+ * @param {string} path
+ */
 export function goTo(path) {
   history.pushState(null, "", path);
   renderRoute(path);
 }
 
+/**
+ * Initialize router and back/forward handling.
+ */
 export function initRouter() {
   renderRoute(location.pathname);
   window.addEventListener("popstate", () => {

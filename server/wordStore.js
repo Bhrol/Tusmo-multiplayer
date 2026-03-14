@@ -4,6 +4,11 @@ const require = createRequire(import.meta.url);
 const frenchWords = require("an-array-of-french-words");
 const englishWords = require("an-array-of-english-words");
 
+/**
+ * Normalize words for matching: strip accents/punctuation and lowercase.
+ * @param {string} value
+ * @returns {string}
+ */
 function normalizeWord(value) {
   return value
     .trim()
@@ -13,6 +18,10 @@ function normalizeWord(value) {
     .replace(/[^a-z]/g, "");
 }
 
+/**
+ * Build fast lookup tables by word length (4-10).
+ * @param {string[]} list
+ */
 function buildWordIndex(list) {
   const byLength = {};
   const setByLength = {};
@@ -40,6 +49,12 @@ function randomFrom(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+/**
+ * Pick a random word from the selected language and length.
+ * @param {number} length
+ * @param {"fr"|"en"} language
+ * @returns {string|null}
+ */
 export function pickWord(length, language) {
   const list = wordsByLang?.[language]?.byLength?.[length];
   if (!list || list.length === 0) {
@@ -48,6 +63,11 @@ export function pickWord(length, language) {
   return randomFrom(list).toUpperCase();
 }
 
+/**
+ * Normalize a user's guess to the same format as the dictionary.
+ * @param {string} value
+ * @returns {string}
+ */
 export function normalizeGuess(value) {
   return String(value || "")
     .trim()
@@ -57,6 +77,13 @@ export function normalizeGuess(value) {
     .replace(/[^A-Z]/g, "");
 }
 
+/**
+ * Check if a guess exists in the dictionary for a given language/length.
+ * @param {string} guess
+ * @param {"fr"|"en"} language
+ * @param {number} length
+ * @returns {boolean}
+ */
 export function isValidWord(guess, language, length) {
   const wordSet = wordsByLang?.[language]?.setByLength?.[length] || new Set();
   return wordSet.has(guess.toLowerCase());
