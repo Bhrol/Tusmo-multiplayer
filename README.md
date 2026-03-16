@@ -9,13 +9,13 @@ npm install
 npm start
 ```
 
-Then open `http://localhost:3000`.
+Then open `http://localhost:3141`.
 
 ## Docker (Raspberry Pi compatible)
 
 ```bash
 docker build -t tusmo-mp .
-docker run -p 3000:3000 tusmo-mp
+docker run -p 3141:3141 tusmo-mp
 ```
 
 The `node:18-alpine` base image is multi-arch and runs on Raspberry Pi.

@@ -19,7 +19,7 @@ function normalizePath(pathname) {
  */
 export function renderRoute(pathname) {
   const path = normalizePath(pathname || "/");
-  const joinMatch = path.match(/^\/join\/([A-Z0-9]{4})$/i);
+  const joinMatch = path.match(/^\/(?:multiplayer\/)?join\/([A-Z0-9]{4})$/i);
 
   if (appState.state?.room && !appState.state.room.started) {
     dom.welcome.classList.add("hidden");
@@ -69,7 +69,7 @@ export function renderRoute(pathname) {
     return;
   }
 
-  if (path === "/join") {
+  if (path === "/join" || path === "/multiplayer/join") {
     dom.welcome.classList.add("hidden");
     dom.lobby.classList.remove("hidden");
     dom.appShell.classList.add("hidden");

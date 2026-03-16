@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "concurrently \"nodemon server.js\" \"browser-sync start --proxy http://localhost:3000 --files \\\"public/**/*.*\\\"\"",
+    "dev": "concurrently \"nodemon server.js\" \"browser-sync start --proxy http://localhost:3141 --files \\\"public/**/*.*\\\"\"",
     "dev:server": "nodemon server.js",
-    "dev:client": "browser-sync start --proxy http://localhost:3000 --files \"public/**/*.*\""
+    "dev:client": "browser-sync start --proxy http://localhost:3141 --files \"public/**/*.*\""
   },
   "dependencies": {
     "an-array-of-english-words": "^2.0.0",

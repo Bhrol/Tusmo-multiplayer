@@ -16,7 +16,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3141;
 const MAX_ATTEMPTS = 6;
 
 /**
@@ -186,8 +186,12 @@ app.get(
     "/create/",
     "/join",
     "/join/",
+    "/multiplayer/join",
+    "/multiplayer/join/",
     "/join/:code",
-    "/join/:code/"
+    "/join/:code/",
+    "/multiplayer/join/:code",
+    "/multiplayer/join/:code/"
   ],
   (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
