@@ -14,6 +14,7 @@ export const dom = {
   waitingNameInput: document.getElementById("waitingNameInput"),
   waitingNameSave: document.getElementById("waitingNameSave"),
   waitingStartBtn: document.getElementById("waitingStartBtn"),
+  modeInput: document.getElementById("modeInput"),
   languageInput: document.getElementById("languageInput"),
   wordCountInput: document.getElementById("wordCountInput"),
   lengthModeInput: document.getElementById("lengthModeInput"),
@@ -25,7 +26,10 @@ export const dom = {
   createBtn: document.getElementById("createBtn"),
   joinBtn: document.getElementById("joinBtn"),
   codeInput: document.getElementById("codeInput"),
+  main: document.querySelector(".main"),
   grid: document.getElementById("grid"),
+  historyPanel: document.getElementById("historyPanel"),
+  historyList: document.getElementById("historyList"),
   playersList: document.getElementById("playersList"),
   keyboard: document.getElementById("keyboard"),
   message: document.getElementById("message"),
@@ -35,5 +39,12 @@ export const dom = {
   homeBtn: document.getElementById("homeBtn"),
   nameEdit: document.getElementById("nameEdit"),
   nameSave: document.getElementById("nameSave"),
-  startBtn: document.getElementById("startBtn")
+  startBtn: document.getElementById("startBtn"),
+  podiumOverlay: document.getElementById("podiumOverlay"),
+  podiumTop: document.getElementById("podiumTop"),
+  podiumLeft: document.getElementById("podiumLeft"),
+  podiumRight: document.getElementById("podiumRight"),
+  podiumRest: document.getElementById("podiumRest"),
+  podiumReplay: document.getElementById("podiumReplay"),
+  podiumClose: document.getElementById("podiumClose")
 };

@@ -16,6 +16,7 @@ updateLengthMode();
 dom.createBtn.addEventListener("click", () => {
   socket.emit("create_room", {
     name: "Player",
+    mode: dom.modeInput.value,
     language: dom.languageInput.value,
     wordCount: Number(dom.wordCountInput.value),
     lengthMode: dom.lengthModeInput.value,
@@ -38,6 +39,7 @@ dom.homeBtn.addEventListener("click", () => {
     appState.state = null;
     appState.roomCode = null;
   }
+  dom.podiumOverlay.classList.add("hidden");
   goTo("/");
   showMessage("");
 });
@@ -78,6 +80,18 @@ dom.showCreate.addEventListener("click", () => {
 
 dom.showJoin.addEventListener("click", () => {
   goTo("/join");
+});
+
+dom.podiumClose.addEventListener("click", () => {
+  dom.podiumOverlay.classList.add("hidden");
+  goTo("/");
+});
+
+dom.podiumReplay.addEventListener("click", () => {
+  if (!appState.roomCode) return;
+  socket.emit("restart_room", { code: appState.roomCode });
+  dom.podiumOverlay.classList.add("hidden");
+  goTo("/multiplayer");
 });
 
 /**

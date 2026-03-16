@@ -121,9 +121,91 @@ body {
 
 .main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: 280px minmax(0, 1fr) 280px;
   gap: 24px;
   align-items: start;
+}
+
+.main.history-hidden {
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.history {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  height: clamp(240px, 45vh, 420px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.history-header {
+  font-weight: 700;
+}
+
+.history-list {
+  display: grid;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+  min-height: 0;
+  flex: 1;
+}
+
+.history-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.history-title {
+  font-weight: 600;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.history-grid {
+  display: grid;
+  gap: 4px;
+}
+
+.history-row {
+  display: grid;
+  gap: 4px;
+}
+
+.history-cell {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #0a4454;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.history-cell.absent {
+  background: var(--absent);
+  border-color: var(--absent);
+}
+
+.history-cell.present {
+  background: var(--present);
+  border-color: var(--present);
+}
+
+.history-cell.correct {
+  background: var(--correct);
+  border-color: var(--correct);
 }
 
 .board {
@@ -232,6 +314,14 @@ body {
 .player-name {
   font-weight: 600;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.player-status-icon {
+  font-size: 14px;
+  opacity: 0.8;
 }
 
 .player-grid {
@@ -298,7 +388,8 @@ body {
 }
 
 .key.absent {
-  background: var(--absent);
+  background: #5f6e77;
+  color: #e6eef3;
 }
 
 .key.present {
@@ -544,9 +635,123 @@ button.secondary {
   display: none !important;
 }
 
+.podium-page {
+  background: radial-gradient(circle at top, #0f6478 0%, #0b5367 50%, #083747 100%);
+  place-items: center;
+}
+
+.podium-page-card {
+  width: min(640px, 100%);
+  margin-top: 0;
+  background: #0f4e61;
+  padding: 28px;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  display: grid;
+  gap: 16px;
+  text-align: center;
+}
+
+.podium-page-card h2 {
+  font-family: "Baloo 2", cursive;
+  font-size: 28px;
+}
+
+.podium-stage {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: end;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.podium-slot {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 12px;
+  min-height: 84px;
+  display: grid;
+  gap: 6px;
+  align-items: center;
+}
+
+.podium-slot.top {
+  min-height: 120px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.podium-slot .podium-rank {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.podium-rest {
+  display: grid;
+  gap: 10px;
+}
+
+.podium-item {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.podium-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.podium-medal {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-block;
+  background: #b0c4de;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15);
+}
+
+.medal-1 {
+  background: #f3c34a;
+}
+
+.medal-2 {
+  background: #c0c8d6;
+}
+
+.medal-3 {
+  background: #c27c3a;
+}
+
+.podium-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #8fd8ff;
+  display: inline-block;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 900px) {
   .main {
     grid-template-columns: 1fr;
+  }
+
+  .history {
+    order: 1;
+    max-height: none;
   }
 
   .players {

@@ -35,8 +35,16 @@ export function startNewWord(room, pickWord) {
   }
 
   room.players.forEach((player) => {
+    if (player.defeated) {
+      player.status = "done";
+      return;
+    }
     player.attempts = [];
     player.currentGuess = "";
     player.status = "playing";
+    player.wordIndex = room.wordIndex;
+    player.currentLength = room.currentLength;
+    player.firstLetter = room.firstLetter;
+    player.targetWord = room.targetWord;
   });
 }

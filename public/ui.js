@@ -189,7 +189,18 @@ export function buildPlayers() {
 
     const name = document.createElement("div");
     name.className = "player-name";
-    name.textContent = `${player.name} ${player.status === "done" ? "✓" : ""}`;
+    name.textContent = player.name;
+    if (player.status === "playing") {
+      const icon = document.createElement("span");
+      icon.className = "player-status-icon";
+      icon.textContent = "▶";
+      name.appendChild(icon);
+    } else if (player.status === "done") {
+      const icon = document.createElement("span");
+      icon.className = "player-status-icon";
+      icon.textContent = "✓";
+      name.appendChild(icon);
+    }
 
     const gridEl = document.createElement("div");
     gridEl.className = "player-grid";
@@ -217,6 +228,61 @@ export function buildPlayers() {
 }
 
 /**
+ * Render the per-word attempt history for the current player.
+ */
+export function renderHistory() {
+  if (!dom.historyList) return;
+  dom.historyList.innerHTML = "";
+  const history = appState.state?.you?.history || [];
+  const maxAttempts = appState.state?.room?.maxAttempts || 0;
+  if (!appState.state?.room?.started || history.length === 0) {
+    dom.historyPanel?.classList.add("hidden");
+    dom.main?.classList.add("history-hidden");
+    return;
+  }
+  dom.historyPanel?.classList.remove("hidden");
+  dom.main?.classList.remove("history-hidden");
+
+  history.forEach((entry) => {
+    const card = document.createElement("div");
+    card.className = "history-card";
+
+    const title = document.createElement("div");
+    title.className = "history-title";
+    title.textContent = `Word ${entry.wordIndex + 1}`;
+
+    const grid = document.createElement("div");
+    grid.className = "history-grid";
+    grid.style.gridTemplateRows = `repeat(${maxAttempts}, 1fr)`;
+
+    for (let row = 0; row < maxAttempts; row += 1) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "history-row";
+      rowEl.style.gridTemplateColumns = `repeat(${entry.length}, 1fr)`;
+      const attempt = entry.attempts[row];
+      for (let col = 0; col < entry.length; col += 1) {
+        const cell = document.createElement("div");
+        cell.className = "history-cell";
+        if (attempt) {
+          const letter = attempt.guess[col];
+          const status = attempt.result[col];
+          cell.textContent = letter;
+          if (status === 2) cell.classList.add("correct");
+          if (status === 1) cell.classList.add("present");
+          if (status === 0) cell.classList.add("absent");
+        }
+        rowEl.appendChild(cell);
+      }
+      grid.appendChild(rowEl);
+    }
+
+    card.appendChild(title);
+    card.appendChild(grid);
+    dom.historyList.appendChild(card);
+  });
+}
+
+/**
  * Update header stats (word, score, room).
  */
 export function updateStats() {
@@ -239,11 +305,13 @@ export function renderWaitingRoom() {
     appState.state.room.lengthMode === "fixed"
       ? `Fixed length: ${appState.state.room.fixedLength}`
       : `Increasing length: ${appState.state.room.minLength} → ${appState.state.room.maxLength}`;
+  const modeName = appState.state.room.mode === "timed" ? "Timed (No Wait)" : "Less Attempts";
   const languageLabel = appState.state.room.language === "en" ? "English" : "French";
   dom.waitingSettings.innerHTML = `
     <div>Room: ${appState.state.room.code}</div>
     <div>Words: ${appState.state.room.wordCount}</div>
     <div>Language: ${languageLabel}</div>
+    <div>Mode: ${modeName}</div>
     <div>${modeLabel}</div>
   `;
 
@@ -264,6 +332,104 @@ export function renderWaitingRoom() {
 }
 
 /**
+ * Format a duration in mm:ss.
+ * @param {number} ms
+ * @returns {string}
+ */
+function formatTime(ms) {
+  if (!ms || ms < 0) return "0:00";
+  const totalSec = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSec / 60);
+  const seconds = String(totalSec % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+/**
+ * Render the podium overlay when the game ends.
+ */
+export function renderPodium() {
+  const players = appState.state?.players || [];
+  if (!players.length) return;
+  const finished = players.filter((p) => p.status === "done");
+  const pending = players.filter((p) => p.status !== "done");
+  const mode = appState.state.room.mode;
+
+  const ranked = finished.filter((p) => !p.defeated).sort((a, b) => {
+    if (mode === "timed") {
+      const aTime = (a.endTime || 0) - (a.startTime || 0);
+      const bTime = (b.endTime || 0) - (b.startTime || 0);
+      return aTime - bTime;
+    }
+    const aAttempts = a.totalAttempts ?? 0;
+    const bAttempts = b.totalAttempts ?? 0;
+    const aTime = (a.endTime || 0) - (a.startTime || 0);
+    const bTime = (b.endTime || 0) - (b.startTime || 0);
+    return aAttempts - bAttempts || aTime - bTime;
+  });
+
+  dom.podiumTop.textContent = "";
+  dom.podiumLeft.textContent = "";
+  dom.podiumRight.textContent = "";
+  dom.podiumRest.innerHTML = "";
+
+  ranked.forEach((entry, idx) => {
+    const row = document.createElement("div");
+    row.className = "podium-item";
+    const rank = idx + 1;
+    const medal = document.createElement("span");
+    medal.className = `podium-medal medal-${Math.min(rank, 3)}`;
+    const detail =
+      mode === "timed"
+        ? `${formatTime((entry.endTime || 0) - (entry.startTime || 0))}`
+        : `${entry.totalAttempts ?? 0} attempts`;
+    row.appendChild(medal);
+    row.appendChild(document.createTextNode(`${rank}. ${entry.name} — ${detail}`));
+    if (rank === 1) {
+      dom.podiumTop.appendChild(row);
+      const rankTag = document.createElement("div");
+      rankTag.className = "podium-rank";
+      rankTag.textContent = "1";
+      dom.podiumTop.prepend(rankTag);
+    } else if (rank === 2) {
+      dom.podiumLeft.appendChild(row);
+      const rankTag = document.createElement("div");
+      rankTag.className = "podium-rank";
+      rankTag.textContent = "2";
+      dom.podiumLeft.prepend(rankTag);
+    } else if (rank === 3) {
+      dom.podiumRight.appendChild(row);
+      const rankTag = document.createElement("div");
+      rankTag.className = "podium-rank";
+      rankTag.textContent = "3";
+      dom.podiumRight.prepend(rankTag);
+    } else {
+      dom.podiumRest.appendChild(row);
+    }
+  });
+
+  finished
+    .filter((p) => p.defeated)
+    .forEach((entry) => {
+      const row = document.createElement("div");
+      row.className = "podium-item";
+      row.appendChild(document.createTextNode(`${entry.name} — defeated`));
+      dom.podiumRest.appendChild(row);
+    });
+
+  pending.forEach((entry) => {
+    const row = document.createElement("div");
+    row.className = "podium-item";
+    const spinner = document.createElement("span");
+    spinner.className = "podium-spinner";
+    row.appendChild(spinner);
+    row.appendChild(document.createTextNode(`${entry.name} — playing`));
+    dom.podiumRest.appendChild(row);
+  });
+
+  dom.podiumOverlay.classList.remove("hidden");
+}
+
+/**
  * Main UI refresh after a state change.
  */
 export function updateUI() {
@@ -271,12 +437,15 @@ export function updateUI() {
   buildGrid();
   buildKeyboard(buildKeyState());
   buildPlayers();
+  renderHistory();
   updateStats();
   if (appState.state.you && dom.nameEdit) {
     dom.nameEdit.value = appState.state.you.name;
   }
   if (!appState.state.room.started) {
     renderWaitingRoom();
+    dom.appShell.classList.add("hidden");
+    dom.lobby.classList.remove("hidden");
   }
   const canEditName = !appState.state.room.started;
   dom.nameEdit.disabled = !canEditName;
@@ -289,7 +458,22 @@ export function updateUI() {
   if (appState.state.room.started && !appState.state.room.gameOver) {
     showMessage("");
   }
-  if (appState.state.room.gameOver) {
+  const youDone = appState.state.you?.status === "done";
+  if (youDone) {
+    showMessage("Waiting for others to finish...");
+    renderPodium();
+  } else if (appState.state.room.gameOver) {
     showMessage("Game over. Create a new room to play again.");
+    renderPodium();
+  } else {
+    dom.podiumOverlay.classList.add("hidden");
   }
+
+  const shouldShowPodium = youDone || appState.state.room.gameOver;
+  const shouldHideApp = !appState.state.room.started || shouldShowPodium;
+  dom.appShell.classList.toggle("hidden", shouldHideApp);
+  dom.lobby.classList.toggle(
+    "hidden",
+    appState.state.room.started || shouldShowPodium
+  );
 }

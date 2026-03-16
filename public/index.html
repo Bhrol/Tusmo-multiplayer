@@ -37,6 +37,11 @@
       </section>
 
       <main class="main">
+        <aside class="history" id="historyPanel">
+          <div class="history-header">History</div>
+          <div id="historyList" class="history-list"></div>
+        </aside>
+
         <section class="board">
           <div id="grid" class="grid"></div>
           <div class="message" id="message"></div>
@@ -87,6 +92,13 @@
         </div>
 
         <div id="createPanel" class="lobby-panel hidden">
+          <label>
+            Mode
+            <select id="modeInput">
+              <option value="sync">Less Attempts</option>
+              <option value="timed">Timed (No Wait)</option>
+            </select>
+          </label>
           <label>
             Language
             <select id="languageInput">
@@ -142,6 +154,22 @@
             <div class="players-header">Players</div>
             <div id="waitingPlayers" class="waiting-list"></div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay podium-page hidden" id="podiumOverlay">
+      <div class="podium-page-card">
+        <h2>Podium</h2>
+        <div class="podium-stage">
+          <div id="podiumLeft" class="podium-slot left"></div>
+          <div id="podiumTop" class="podium-slot top"></div>
+          <div id="podiumRight" class="podium-slot right"></div>
+        </div>
+        <div id="podiumRest" class="podium-rest"></div>
+        <div class="podium-actions">
+          <button id="podiumReplay" class="primary">Replay</button>
+          <button id="podiumClose" class="secondary">Back to Home</button>
         </div>
       </div>
     </div>
