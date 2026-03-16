@@ -315,6 +315,30 @@ export function renderWaitingRoom() {
     <div>${modeLabel}</div>
   `;
 
+  if (dom.modeInput) {
+    dom.modeInput.value = appState.state.room.mode === "timed" ? "timed" : "sync";
+  }
+  if (dom.languageInput) {
+    dom.languageInput.value = appState.state.room.language === "en" ? "en" : "fr";
+  }
+  if (dom.wordCountInput) {
+    dom.wordCountInput.value = String(appState.state.room.wordCount);
+  }
+  if (dom.lengthModeInput) {
+    dom.lengthModeInput.value =
+      appState.state.room.lengthMode === "range" ? "range" : "fixed";
+  }
+  if (dom.fixedLengthInput) {
+    dom.fixedLengthInput.value = String(appState.state.room.fixedLength);
+  }
+  if (dom.minLengthInput) {
+    dom.minLengthInput.value = String(appState.state.room.minLength);
+  }
+  if (dom.maxLengthInput) {
+    dom.maxLengthInput.value = String(appState.state.room.maxLength);
+  }
+  updateLengthMode();
+
   if (appState.state.you) {
     dom.waitingNameInput.value = appState.state.you.name;
   }
