@@ -122,7 +122,7 @@ socket.on("error_msg", (payload) => {
 
 socket.on("invalid_guess", (payload) => {
   // showMessage(payload.text);
-  showMessage(appState.currentGuess + ", " + payload.text);
+  showMessage(appState.currentGuess.join("") + " : " + payload.text);
   appState.currentGuess = appState.currentGuess.slice(0, 1).concat(appState.currentGuess.slice(1).map(() => ""));
   appState.overrideMask = appState.overrideMask.slice(0, 1).concat(appState.overrideMask.slice(1).map(() => true));
   appState.lastLetterIndex = 0;
