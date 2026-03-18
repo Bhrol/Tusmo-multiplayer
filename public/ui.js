@@ -136,20 +136,26 @@ export function buildGrid() {
         if (status === 1) cell.classList.add("present");
         if (status === 0) cell.classList.add("absent");
       } else if (row === activeRow) {
-        const letter =
-          appState.currentGuess[col] ||
-          (appState.overrideMask[col] ? "" : fixedLetters[col]) ||
-          "";
+        const typedLetter = appState.currentGuess[col] || "";
+        const fixedLetter = fixedLetters[col] || "";
+        const letter = typedLetter || fixedLetter || "";
+        const isTyped = Boolean(typedLetter) && appState.overrideMask[col];
         cell.textContent = letter || "·";
-        if (letter) {
+        if ((letter && isTyped) || col===0) {
           cell.classList.add("current-fill");
-        } else {
+        } else if (!letter) {
           cell.classList.add("current-dot");
         }
         if (prevRowLetters[col] !== null && prevRowLetters[col] !== letter) {
           cell.classList.add("cell-bounce");
         }
-        prevRowLetters[col] = letter;
+        console.log(fixedLetter, letter, col);
+
+        if (fixedLetter && letter=="") {
+          prevRowLetters[col] = fixedLetter;
+        } else {
+          prevRowLetters[col] = letter;
+        }
       }
       rowEl.appendChild(cell);
     }
@@ -501,3 +507,4 @@ export function updateUI() {
     appState.state.room.started || shouldShowPodium
   );
 }
+
