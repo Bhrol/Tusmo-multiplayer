@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "an-array-of-english-words": "^2.0.0",
-    "an-array-of-french-words": "^2.0.0",
     "express": "^4.19.2",
     "socket.io": "^4.7.5"
   },

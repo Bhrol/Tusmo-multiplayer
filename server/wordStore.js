@@ -1,8 +1,15 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { createRequire } from "module";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const require = createRequire(import.meta.url);
-const frenchWords = require("an-array-of-french-words");
 const englishWords = require("an-array-of-english-words");
+const frenchWordsPath = path.join(__dirname, "indexer", "old");
+const frenchWords = fs.readFileSync(frenchWordsPath, "utf8").split(/\r?\n/);
 
 /**
  * Normalize words for matching: strip accents/punctuation and lowercase.
