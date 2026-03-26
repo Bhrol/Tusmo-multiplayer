@@ -57,6 +57,11 @@ function emitRoomState(room) {
   room.players.forEach((player) => {
     io.to(player.id).emit("room_state", buildRoomState(room, player.id, MAX_ATTEMPTS));
   });
+  if (room.spectators) {
+    room.spectators.forEach((spectatorId) => {
+      io.to(spectatorId).emit("room_state", buildRoomState(room, spectatorId, MAX_ATTEMPTS));
+    });
+  }
 }
 
 /**
@@ -211,11 +216,23 @@ io.on("connection", (socket) => {
           room.hostId = Array.from(room.players.keys())[0];
         }
         if (room.players.size === 0) {
+          if (room.spectators?.size) {
+            room.spectators.forEach((spectatorId) => {
+              io.to(spectatorId).emit("error_msg", { text: "Room closed (no players left)." });
+              io.sockets.sockets.get(spectatorId)?.leave(room.code);
+            });
+            room.spectators.clear();
+          }
           rooms.delete(room.code);
         } else {
           emitRoomState(room);
           checkAdvance(room);
         }
+        break;
+      }
+      if (room.spectators?.has(socket.id)) {
+        room.spectators.delete(socket.id);
+        socket.leave(room.code);
         break;
       }
     }
@@ -263,7 +280,8 @@ io.on("connection", (socket) => {
       gameOver: false,
       started: false,
       hostId: socket.id,
-      nextGuest: 1
+      nextGuest: 1,
+      spectators: new Set()
     };
 
     rooms.set(code, room);
@@ -301,7 +319,10 @@ io.on("connection", (socket) => {
       return;
     }
     if (room.started) {
-      socket.emit("error_msg", { text: "Game already started." });
+      room.spectators.add(socket.id);
+      socket.join(code);
+      emitRoomState(room);
+      socket.emit("room_message", { text: "You joined as spectator." });
       return;
     }
 

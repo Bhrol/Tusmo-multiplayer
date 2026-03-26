@@ -39,6 +39,7 @@ dom.homeBtn.addEventListener("click", () => {
     appState.state = null;
     appState.roomCode = null;
   }
+  appState.reviewMode = false;
   dom.podiumOverlay.classList.add("hidden");
   goTo("/");
   showMessage("");
@@ -83,6 +84,7 @@ dom.showJoin.addEventListener("click", () => {
 });
 
 dom.podiumClose.addEventListener("click", () => {
+  appState.reviewMode = false;
   dom.podiumOverlay.classList.add("hidden");
   goTo("/");
 });
@@ -90,8 +92,28 @@ dom.podiumClose.addEventListener("click", () => {
 dom.podiumReplay.addEventListener("click", () => {
   if (!appState.roomCode) return;
   socket.emit("restart_room", { code: appState.roomCode });
+  appState.reviewMode = false;
   dom.podiumOverlay.classList.add("hidden");
   goTo("/multiplayer");
+});
+
+dom.podiumWatch.addEventListener("click", () => {
+  appState.reviewMode = true;
+  if (appState.state?.you?.status === "done") {
+    const others = (appState.state.othersGrids || []).filter(
+      (player) => player.id !== appState.state.you.id
+    );
+    if (others.length) {
+      appState.selectedPlayerId = others[0].id;
+    }
+  }
+  dom.podiumOverlay.classList.add("hidden");
+  updateUI();
+});
+
+dom.viewPodiumBtn.addEventListener("click", () => {
+  appState.reviewMode = false;
+  updateUI();
 });
 
 /**
@@ -101,6 +123,22 @@ dom.podiumReplay.addEventListener("click", () => {
 socket.on("room_state", (payload) => {
   appState.state = payload;
   appState.roomCode = payload.room.code;
+  const canSelectPlayers = payload.you?.spectator || payload.you?.status === "done";
+  if (canSelectPlayers) {
+    const ownChoice =
+      payload.you?.status === "done"
+        ? [{ id: payload.you.id, name: payload.you.name }]
+        : [];
+    const selectablePlayers = [...ownChoice, ...(payload.othersGrids || [])];
+    if (!selectablePlayers.length) {
+      appState.selectedPlayerId = null;
+    } else if (!selectablePlayers.some((p) => p.id === appState.selectedPlayerId)) {
+      appState.selectedPlayerId = selectablePlayers[0].id;
+    }
+  } else {
+    appState.selectedPlayerId = payload.you?.id || null;
+    appState.reviewMode = false;
+  }
   const attemptCount = appState.state.you?.attempts?.length ?? 0;
   if (
     payload.room.wordIndex !== appState.lastWordIndex ||

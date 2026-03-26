@@ -25,6 +25,9 @@ function buildGridForPlayer(player, length, maxAttempts) {
  * @returns {object}
  */
 export function buildRoomState(room, socketId, maxAttempts) {
+  const you = room.players.get(socketId);
+  const isSpectator = !you;
+  const canViewAttempts = isSpectator || you?.status === "done";
   const players = Array.from(room.players.values()).map((p) => ({
     id: p.id,
     name: p.name,
@@ -35,10 +38,15 @@ export function buildRoomState(room, socketId, maxAttempts) {
     endTime: p.endTime,
     defeated: p.defeated
   }));
+  const spectatorTimedWordIndex = Array.from(room.players.values()).reduce(
+    (maxIndex, player) => Math.max(maxIndex, player.wordIndex ?? -1),
+    -1
+  );
 
-  const you = room.players.get(socketId);
   const viewWordIndex =
-    room.settings.mode === "timed" ? you?.wordIndex ?? room.wordIndex : room.wordIndex;
+    room.settings.mode === "timed"
+      ? you?.wordIndex ?? spectatorTimedWordIndex
+      : room.wordIndex;
   const viewLength =
     room.settings.mode === "timed" ? you?.currentLength ?? room.currentLength : room.currentLength;
   const viewFirstLetter =
@@ -48,12 +56,19 @@ export function buildRoomState(room, socketId, maxAttempts) {
     .map((p) => ({
       id: p.id,
       name: p.name,
+      score: p.score,
+      totalAttempts: p.totalAttempts,
+      currentLength: p.currentLength,
+      firstLetter: p.firstLetter,
       grid: buildGridForPlayer(
         p,
         room.settings.mode === "timed" ? p.currentLength : room.currentLength,
         maxAttempts
       ),
-      status: p.status
+      status: p.status,
+      wordIndex: p.wordIndex,
+      attempts: canViewAttempts ? p.attempts : undefined,
+      history: canViewAttempts ? p.history : undefined
     }));
 
   return {
@@ -90,9 +105,26 @@ export function buildRoomState(room, socketId, maxAttempts) {
           startTime: you.startTime,
           endTime: you.endTime,
           defeated: you.defeated,
-          history: you.history
+          history: you.history,
+          spectator: false
         }
-      : null,
+      : {
+          id: socketId,
+          name: "Spectator",
+          score: 0,
+          attempts: [],
+          currentGuess: "",
+          status: "spectating",
+          wordIndex: viewWordIndex,
+          currentLength: viewLength,
+          firstLetter: viewFirstLetter || "",
+          totalAttempts: 0,
+          startTime: null,
+          endTime: null,
+          defeated: false,
+          history: [],
+          spectator: true
+        },
     players,
     othersGrids
   };

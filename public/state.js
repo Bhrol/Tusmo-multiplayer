@@ -7,5 +7,7 @@ export const appState = {
   lastLength: null,
   lastAttemptCount: null,
   lastAutoJoinCode: null,
-  lastLetterIndex: null
+  lastLetterIndex: null,
+  selectedPlayerId: null,
+  reviewMode: false
 };

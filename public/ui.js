@@ -1,4 +1,4 @@
-import { dom } from "./dom.js";
+﻿import { dom } from "./dom.js";
 import { appState } from "./state.js";
 
 const KEYBOARD_LAYOUT = [
@@ -10,6 +10,27 @@ const KEYBOARD_LAYOUT = [
 let keyHandler = null;
 let prevRowLetters = [];
 let prevRowIndex = -1;
+let toastTimer = null;
+
+/**
+ * Show a short in-window toast notification.
+ * @param {string} text
+ */
+function showToast(text) {
+  let toast = document.getElementById("copyToast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "copyToast";
+    toast.className = "copy-toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = text;
+  toast.classList.add("show");
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 1700);
+}
 
 /**
  * Inject keyboard handler to avoid circular imports.
@@ -42,6 +63,52 @@ export function showMessage(text) {
 }
 
 /**
+ * Resolve the currently focused player (self or selected target in spectator mode).
+ * @returns {object|null}
+ */
+function getFocusedPlayer() {
+  if (!appState.state?.room || !appState.state?.you) return null;
+  const selectorMode = appState.state.you.spectator || appState.state.you.status === "done";
+  if (!selectorMode) {
+    return {
+      id: appState.state.you.id,
+      name: appState.state.you.name,
+      score: appState.state.you.score,
+      attempts: appState.state.you.attempts,
+      history: appState.state.you.history,
+      status: appState.state.you.status,
+      wordIndex: appState.state.you.wordIndex,
+      currentLength: appState.state.you.currentLength,
+      firstLetter: appState.state.you.firstLetter,
+      spectatorTarget: false
+    };
+  }
+
+  const players = [];
+  if (appState.state.you.status === "done") {
+    players.push({
+      id: appState.state.you.id,
+      name: appState.state.you.name,
+      score: appState.state.you.score,
+      attempts: appState.state.you.attempts || [],
+      history: appState.state.you.history || [],
+      status: appState.state.you.status,
+      wordIndex: appState.state.you.wordIndex,
+      currentLength: appState.state.you.currentLength,
+      firstLetter: appState.state.you.firstLetter
+    });
+  }
+  players.push(...(appState.state.othersGrids || []));
+  if (!players.length) return null;
+  const selected =
+    players.find((player) => player.id === appState.selectedPlayerId) || players[0];
+  return {
+    ...selected,
+    spectatorTarget: true
+  };
+}
+
+/**
  * Toggle fixed vs range length inputs.
  */
 export function updateLengthMode() {
@@ -70,7 +137,7 @@ export function buildKeyboard(keyState) {
       if (key === "BACK" || key === "ENTER") {
         btn.classList.add("wide");
       }
-      btn.textContent = key === "BACK" ? "⌫" : key === "ENTER" ? "⏎" : key;
+      btn.textContent = key === "BACK" ? "\u232B" : key === "ENTER" ? "\u23CE" : key;
       const status = keyState[key];
       if (status === 2) btn.classList.add("correct");
       if (status === 1) btn.classList.add("present");
@@ -109,24 +176,37 @@ export function getFixedLetters() {
  */
 export function buildGrid() {
   if (!appState.state?.room || !appState.state?.you) return;
-  const length = appState.state.room.currentLength;
-  const fixedLetters = getFixedLetters();
-  const activeRow = appState.state.you.attempts.length;
+  const focusedPlayer = getFocusedPlayer();
+  if (!focusedPlayer) return;
+  const isSpectator = Boolean(appState.state.you?.spectator);
+  const length = focusedPlayer.currentLength || appState.state.room.currentLength;
+  const fixedLetters = isSpectator ? Array(length).fill("") : getFixedLetters();
+  const attempts = focusedPlayer.attempts || [];
+  const activeRow = attempts.length;
   if (activeRow !== prevRowIndex || prevRowLetters.length !== length) {
     prevRowIndex = activeRow;
     prevRowLetters = Array(length).fill(null);
   }
   dom.grid.style.gridTemplateRows = `repeat(${appState.state.room.maxAttempts}, 1fr)`;
+  dom.grid.style.setProperty("--word-length", length);
+  const gridStyle = getComputedStyle(dom.grid);
+  const gapPx = parseFloat(gridStyle.columnGap || gridStyle.gap || "6") || 6;
+  const containerWidth = Math.max(
+    0,
+    dom.grid.parentElement?.clientWidth || dom.grid.clientWidth || window.innerWidth - 40
+  );
+  const maxCellByWidth = Math.floor((containerWidth - gapPx * (length - 1)) / length);
+  const cellSize = Math.max(24, Math.min(46, maxCellByWidth));
+  dom.grid.style.setProperty("--cell-size", `${cellSize}px`);
   dom.grid.innerHTML = "";
   for (let row = 0; row < appState.state.room.maxAttempts; row += 1) {
     const rowEl = document.createElement("div");
     rowEl.className = "row";
-    rowEl.style.gridTemplateColumns = `repeat(${length}, 1fr)`;
     for (let col = 0; col < length; col += 1) {
       const cell = document.createElement("div");
       cell.className = "tile-cell empty";
 
-      const attempt = appState.state.you.attempts[row];
+      const attempt = attempts[row];
       if (attempt) {
         const letter = attempt.guess[col];
         cell.textContent = letter;
@@ -135,13 +215,13 @@ export function buildGrid() {
         if (status === 2) cell.classList.add("correct");
         if (status === 1) cell.classList.add("present");
         if (status === 0) cell.classList.add("absent");
-      } else if (row === activeRow) {
+      } else if (row === activeRow && !isSpectator) {
         const typedLetter = appState.currentGuess[col] || "";
         const fixedLetter = fixedLetters[col] || "";
         const letter = typedLetter || fixedLetter || "";
-        const isTyped = Boolean(typedLetter) && appState.overrideMask[col];
-        cell.textContent = letter || "·";
-        if ((letter && isTyped) || col===0) {
+        const isTyped = (Boolean(typedLetter) && appState.overrideMask[col]) || col===0;
+        cell.textContent = letter || "\u00B7";
+        if (letter && isTyped) {
           cell.classList.add("current-fill");
         } else if (!letter) {
           cell.classList.add("current-dot");
@@ -149,13 +229,7 @@ export function buildGrid() {
         if (prevRowLetters[col] !== null && prevRowLetters[col] !== letter) {
           cell.classList.add("cell-bounce");
         }
-        console.log(fixedLetter, letter, col);
-
-        if (fixedLetter && letter=="") {
-          prevRowLetters[col] = fixedLetter;
-        } else {
-          prevRowLetters[col] = letter;
-        }
+        prevRowLetters[col] = letter;
       }
       rowEl.appendChild(cell);
     }
@@ -170,7 +244,9 @@ export function buildGrid() {
 export function buildKeyState() {
   const keyState = {};
   if (!appState.state?.you) return keyState;
-  appState.state.you.attempts.forEach((attempt) => {
+  const focusedPlayer = getFocusedPlayer();
+  if (!focusedPlayer?.attempts) return keyState;
+  focusedPlayer.attempts.forEach((attempt) => {
     attempt.guess.split("").forEach((letter, idx) => {
       const status = attempt.result[idx];
       const current = keyState[letter];
@@ -188,10 +264,37 @@ export function buildKeyState() {
 export function buildPlayers() {
   dom.playersList.innerHTML = "";
   if (!appState.state?.othersGrids) return;
+  const selectorMode =
+    Boolean(appState.state?.you?.spectator) || appState.state?.you?.status === "done";
+  const isSpectator = Boolean(appState.state?.you?.spectator);
+  const playersToRender = [];
+  if (appState.state?.you?.status === "done") {
+    playersToRender.push({
+      id: appState.state.you.id,
+      name: `${appState.state.you.name} (You)`,
+      score: appState.state.you.score,
+      attempts: appState.state.you.attempts || [],
+      status: appState.state.you.status,
+      wordIndex: appState.state.you.wordIndex,
+      currentLength: appState.state.you.currentLength,
+      history: appState.state.you.history || []
+    });
+  }
+  playersToRender.push(...appState.state.othersGrids);
 
-  appState.state.othersGrids.forEach((player) => {
+  playersToRender.forEach((player) => {
     const card = document.createElement("div");
     card.className = "player-card";
+    if (selectorMode) {
+      card.classList.add("selectable");
+      if (player.id === appState.selectedPlayerId) {
+        card.classList.add("selected");
+      }
+      card.addEventListener("click", () => {
+        appState.selectedPlayerId = player.id;
+        updateUI();
+      });
+    }
 
     const name = document.createElement("div");
     name.className = "player-name";
@@ -199,26 +302,38 @@ export function buildPlayers() {
     if (player.status === "playing") {
       const icon = document.createElement("span");
       icon.className = "player-status-icon";
-      icon.textContent = "▶";
+      icon.textContent = "\u25B6";
       name.appendChild(icon);
     } else if (player.status === "done") {
       const icon = document.createElement("span");
       icon.className = "player-status-icon";
-      icon.textContent = "✓";
+      icon.textContent = "\u2713";
       name.appendChild(icon);
     }
+
+    const progress = document.createElement("div");
+    progress.className = "player-progress";
+    const currentWord = Math.max(1, (player.wordIndex ?? -1) + 1);
+    progress.textContent = `Mot ${currentWord}/${appState.state.room.wordCount}`;
 
     const gridEl = document.createElement("div");
     gridEl.className = "player-grid";
     gridEl.style.gridTemplateRows = `repeat(${appState.state.room.maxAttempts}, 1fr)`;
 
-    player.grid.forEach((row) => {
+    const rows = selectorMode && player.attempts?.length
+      ? player.attempts.map((attempt) => attempt.result)
+      : player.grid;
+    rows.forEach((row, rowIndex) => {
       const rowEl = document.createElement("div");
       rowEl.className = "player-row";
       rowEl.style.gridTemplateColumns = `repeat(${row.length}, 1fr)`;
-      row.forEach((status) => {
+      row.forEach((status, colIndex) => {
         const cell = document.createElement("div");
         cell.className = "player-cell";
+        if (selectorMode && player.attempts?.[rowIndex]) {
+          cell.textContent = player.attempts[rowIndex].guess[colIndex] || "";
+          cell.classList.add("with-letter");
+        }
         if (status === 2) cell.classList.add("correct");
         if (status === 1) cell.classList.add("present");
         if (status === 0) cell.classList.add("absent");
@@ -228,6 +343,7 @@ export function buildPlayers() {
     });
 
     card.appendChild(name);
+    card.appendChild(progress);
     card.appendChild(gridEl);
     dom.playersList.appendChild(card);
   });
@@ -239,7 +355,8 @@ export function buildPlayers() {
 export function renderHistory() {
   if (!dom.historyList) return;
   dom.historyList.innerHTML = "";
-  const history = appState.state?.you?.history || [];
+  const focusedPlayer = getFocusedPlayer();
+  const history = focusedPlayer?.history || [];
   const maxAttempts = appState.state?.room?.maxAttempts || 0;
   if (!appState.state?.room?.started || history.length === 0) {
     dom.historyPanel?.classList.add("hidden");
@@ -249,7 +366,7 @@ export function renderHistory() {
   dom.historyPanel?.classList.remove("hidden");
   dom.main?.classList.remove("history-hidden");
 
-  history.forEach((entry) => {
+  [...history].reverse().forEach((entry) => {
     const card = document.createElement("div");
     card.className = "history-card";
 
@@ -293,12 +410,14 @@ export function renderHistory() {
  */
 export function updateStats() {
   if (!appState.state?.room || !appState.state?.you) return;
+  const focusedPlayer = getFocusedPlayer();
   if (!appState.state.room.started) {
     dom.wordStat.textContent = "Waiting";
   } else {
-    dom.wordStat.textContent = `Mot ${appState.state.room.wordIndex}/${appState.state.room.wordCount}`;
+    const focusedWord = Math.max(1, (focusedPlayer?.wordIndex ?? 0) + 1);
+    dom.wordStat.textContent = `Mot ${focusedWord}/${appState.state.room.wordCount}`;
   }
-  dom.scoreStat.textContent = `Score ${appState.state.you.score}`;
+  dom.scoreStat.textContent = `Score ${focusedPlayer?.score ?? appState.state.you.score ?? 0}`;
   dom.roomPill.textContent = `Room ${appState.state.room.code}`;
 }
 
@@ -307,19 +426,32 @@ export function updateStats() {
  */
 export function renderWaitingRoom() {
   if (!appState.state?.room) return;
+  const joinUrl = `${window.location.origin}/multiplayer/join/${appState.state.room.code}`;
   const modeLabel =
     appState.state.room.lengthMode === "fixed"
       ? `Fixed length: ${appState.state.room.fixedLength}`
-      : `Increasing length: ${appState.state.room.minLength} → ${appState.state.room.maxLength}`;
+      : `Increasing length: ${appState.state.room.minLength} -> ${appState.state.room.maxLength}`;
   const modeName = appState.state.room.mode === "timed" ? "Timed (No Wait)" : "Less Attempts";
   const languageLabel = appState.state.room.language === "en" ? "English" : "French";
   dom.waitingSettings.innerHTML = `
     <div>Room: ${appState.state.room.code}</div>
+    <div>Join link: <a href="${joinUrl}" id="waitingJoinLink" class="waiting-link">${joinUrl}</a></div>
     <div>Words: ${appState.state.room.wordCount}</div>
     <div>Language: ${languageLabel}</div>
     <div>Mode: ${modeName}</div>
     <div>${modeLabel}</div>
   `;
+
+  const joinLinkEl = document.getElementById("waitingJoinLink");
+  joinLinkEl?.addEventListener("click", async (event) => {
+    event.preventDefault();
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      showToast("Join link copied");
+    } catch {
+      showMessage("Could not copy the link automatically.");
+    }
+  });
 
   if (dom.modeInput) {
     dom.modeInput.value = appState.state.room.mode === "timed" ? "timed" : "sync";
@@ -413,7 +545,7 @@ export function renderPodium() {
         ? `${formatTime((entry.endTime || 0) - (entry.startTime || 0))}`
         : `${entry.totalAttempts ?? 0} attempts`;
     row.appendChild(medal);
-    row.appendChild(document.createTextNode(`${rank}. ${entry.name} — ${detail}`));
+    row.appendChild(document.createTextNode(`${rank}. ${entry.name} \u2014 ${detail}`));
     if (rank === 1) {
       dom.podiumTop.appendChild(row);
       const rankTag = document.createElement("div");
@@ -442,7 +574,7 @@ export function renderPodium() {
     .forEach((entry) => {
       const row = document.createElement("div");
       row.className = "podium-item";
-      row.appendChild(document.createTextNode(`${entry.name} — defeated`));
+      row.appendChild(document.createTextNode(`${entry.name} \u2014 defeated`));
       dom.podiumRest.appendChild(row);
     });
 
@@ -452,7 +584,7 @@ export function renderPodium() {
     const spinner = document.createElement("span");
     spinner.className = "podium-spinner";
     row.appendChild(spinner);
-    row.appendChild(document.createTextNode(`${entry.name} — playing`));
+    row.appendChild(document.createTextNode(`${entry.name} \u2014 playing`));
     dom.podiumRest.appendChild(row);
   });
 
@@ -480,16 +612,26 @@ export function updateUI() {
   const canEditName = !appState.state.room.started;
   dom.nameEdit.disabled = !canEditName;
   dom.nameSave.disabled = !canEditName;
+  dom.nameEditWrap?.classList.toggle("hidden", appState.state.room.started);
   const isHost = appState.state.room.hostId === appState.state.you.id;
   dom.startBtn.classList.toggle("hidden", appState.state.room.started || !isHost);
+  dom.viewPodiumBtn.classList.toggle("hidden", !(appState.state.you?.status === "done" && appState.reviewMode));
+  dom.podiumWatch.classList.toggle(
+    "hidden",
+    !(appState.state.you?.status === "done" && !appState.state.room.gameOver)
+  );
   if (!appState.state.room.started) {
     showMessage(isHost ? "You can start the game." : "Waiting for host to start.");
   }
   if (appState.state.room.started && !appState.state.room.gameOver) {
-    showMessage("");
+    if (appState.state.you?.spectator) {
+      showMessage("Spectator mode: watching live attempts.");
+    } else {
+      showMessage("");
+    }
   }
   const youDone = appState.state.you?.status === "done";
-  if (youDone) {
+  if (youDone && !appState.reviewMode) {
     showMessage("Waiting for others to finish...");
     renderPodium();
   } else if (appState.state.room.gameOver) {
@@ -499,12 +641,15 @@ export function updateUI() {
     dom.podiumOverlay.classList.add("hidden");
   }
 
-  const shouldShowPodium = youDone || appState.state.room.gameOver;
+  const shouldShowPodium = (youDone && !appState.reviewMode) || appState.state.room.gameOver;
   const shouldHideApp = !appState.state.room.started || shouldShowPodium;
   dom.appShell.classList.toggle("hidden", shouldHideApp);
+  dom.keyboard.classList.toggle(
+    "hidden",
+    Boolean(appState.state.you?.spectator) || appState.state.you?.status === "done"
+  );
   dom.lobby.classList.toggle(
     "hidden",
     appState.state.room.started || shouldShowPodium
   );
 }
-

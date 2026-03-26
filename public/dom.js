@@ -36,15 +36,18 @@ export const dom = {
   wordStat: document.getElementById("wordStat"),
   scoreStat: document.getElementById("scoreStat"),
   roomPill: document.getElementById("roomPill"),
+  nameEditWrap: document.querySelector(".name-edit"),
   homeBtn: document.getElementById("homeBtn"),
   nameEdit: document.getElementById("nameEdit"),
   nameSave: document.getElementById("nameSave"),
   startBtn: document.getElementById("startBtn"),
+  viewPodiumBtn: document.getElementById("viewPodiumBtn"),
   podiumOverlay: document.getElementById("podiumOverlay"),
   podiumTop: document.getElementById("podiumTop"),
   podiumLeft: document.getElementById("podiumLeft"),
   podiumRight: document.getElementById("podiumRight"),
   podiumRest: document.getElementById("podiumRest"),
+  podiumWatch: document.getElementById("podiumWatch"),
   podiumReplay: document.getElementById("podiumReplay"),
   podiumClose: document.getElementById("podiumClose")
 };
