@@ -6,15 +6,15 @@
  * `selectedPlayerId`/`reviewMode` control read-only review and spectator views.
  */
 export const appState = {
-    state: null,
-    roomCode: null,
-    currentGuess: [],
-    overrideMask: [],
-    lastWordIndex: null,
-    lastLength: null,
-    lastAttemptCount: null,
-    lastAutoJoinCode: null,
-    lastLetterIndex: null,
-    selectedPlayerId: null,
-    reviewMode: false
+  state: null,
+  roomCode: null,
+  currentGuess: [],
+  overrideMask: [],
+  lastWordIndex: null,
+  lastLength: null,
+  lastAttemptCount: null,
+  lastAutoJoinCode: null,
+  lastLetterIndex: null,
+  selectedPlayerId: null,
+  reviewMode: false
 };
