@@ -96,8 +96,8 @@
           <label>
             Mode
             <select id="modeInput">
-              <option value="sync">Less Attempts</option>
               <option value="timed">Timed (No Wait)</option>
+              <option value="sync">Less Attempts</option>
             </select>
           </label>
           <label>
@@ -109,13 +109,13 @@
           </label>
           <label>
             Number of words
-            <input type="number" id="wordCountInput" min="1" max="20" value="3" />
+            <input type="number" id="wordCountInput" min="1" max="20" value="10" />
           </label>
           <label>
             Length mode
             <select id="lengthModeInput">
-              <option value="fixed">Fixed</option>
               <option value="range">Increasing range</option>
+              <option value="fixed">Fixed</option>
             </select>
           </label>
           <label id="fixedLengthWrap">
@@ -125,11 +125,11 @@
           <div id="rangeWrap" class="range-wrap">
             <label>
               Min length
-              <input type="number" id="minLengthInput" min="4" max="10" value="4" />
+              <input type="number" id="minLengthInput" min="4" max="10" value="6" />
             </label>
             <label>
               Max length
-              <input type="number" id="maxLengthInput" min="4" max="10" value="8" />
+              <input type="number" id="maxLengthInput" min="4" max="10" value="10" />
             </label>
           </div>
           <button id="createBtn" class="primary">Create</button>
